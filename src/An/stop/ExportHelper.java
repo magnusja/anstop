@@ -20,7 +20,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-package An.stop.util;
+package An.stop;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,7 +29,10 @@ import java.io.IOException;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.os.Environment;
+import android.preference.PreferenceManager;
+import android.text.format.DateFormat;
 
 /**
  * Helper class to export time and lap data.

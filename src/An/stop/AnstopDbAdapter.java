@@ -20,11 +20,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-package An.stop.util;
+package An.stop;
 
-import An.stop.AnstopActivity;
-import An.stop.Clock;
-import An.stop.R;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -210,7 +207,7 @@ public class AnstopDbAdapter {
     }
     
     /** Don't forget to call {@link #open()} before use, and {@link #close()} when done. */
-    public AnstopDbAdapter(Context context) {
+    AnstopDbAdapter(Context context) {
     	this.mContext = context;
     }
     
@@ -233,7 +230,7 @@ public class AnstopDbAdapter {
      * If there are laps, add them afterwards by calling {@link #createNewLaps(long, int, long[], long[])}.
      * @param title  Title
      * @param comment   Comment, or null. In v2 this body text also included the start time and laps.
-     * @param mode   Stopwatch mode used: {@link AnstopActivity#STOP_LAP} or {@link AnstopActivity#COUNTDOWN}
+     * @param mode   Stopwatch mode used: {@link Anstop#STOP_LAP} or {@link Anstop#COUNTDOWN}
      * @param startTime  Start time (milliseconds), or -1L if never started.
      *    This same convention is returned by {@link Clock#getStartTimeActual()}.
      * @param stopTime   Stop time (milliseconds), or -1L for none
@@ -312,7 +309,7 @@ public class AnstopDbAdapter {
 	 * along with the comment field if any.
 	 * Older records (v1 or v2) have these as text within body.
 	 *<P>
-	 * The same formatting is used in {@link AnstopActivity#updateStartTimeCommentLapsView(boolean)}.
+	 * The same formatting is used in {@link Anstop#updateStartTimeCommentLapsView(boolean)}.
 	 * If you change this method, change that one to match.
 	 *
 	 * @param rowId  The _id of the {@link #DATABASE_TABLE} record to retrieve
@@ -346,7 +343,7 @@ public class AnstopDbAdapter {
 				// Laps:
 				// lap info
 				if (fmt_dow_meddate_time == null)
-					fmt_dow_meddate_time = AnstopActivity.buildDateFormatDOWmedium(mContext);
+					fmt_dow_meddate_time = Anstop.buildDateFormatDOWmedium(mContext);
 				StringBuilder sb = new StringBuilder();
 
 				Clock.LapFormatter lapf = new Clock.LapFormatter();
@@ -354,7 +351,7 @@ public class AnstopDbAdapter {
 				// mode
 				sb.append(mContext.getResources().getString(R.string.mode_was));
 				sb.append(' ');
-				if (AnstopActivity.COUNTDOWN == time.getInt(col_mode))
+				if (Anstop.COUNTDOWN == time.getInt(col_mode))
 					sb.append(mContext.getResources().getString(R.string.countdown));
 				else
 					sb.append(mContext.getResources().getString(R.string.stop));
@@ -397,7 +394,7 @@ public class AnstopDbAdapter {
 					long[] lap_elapsed = new long[lapCount],
 					       lap_systime = new long[lapCount];
 					fetchAllLaps(rowId, lap_elapsed, lap_systime);
-					final int fmtFlags = AnstopActivity.readLapFormatPrefFlags
+					final int fmtFlags = Anstop.readLapFormatPrefFlags
 						(PreferenceManager.getDefaultSharedPreferences(mContext));
 					if ((fmtFlags != 0) && (fmtFlags != Clock.LAP_FMT_FLAG_ELAPSED))
 						lapf.setLapFormat

@@ -23,21 +23,19 @@
 package An.stop;
 
 
-import An.stop.util.AnstopDbAdapter;
-import An.stop.util.ExportHelper;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.view.MenuInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 
 
 /**
@@ -49,6 +47,17 @@ public class LoadActivity extends ListActivity {
 	
 	private AnstopDbAdapter dbHelper;
 	String body;
+	
+	private static final int MENU_DELETE = 12;
+	private static final int DELETE_ITEM = 13;
+	private static final int MENU_EXPORT = 14;
+	private static final int EXPORT_ITEM = 15;
+	private static final int MENU_SEND = 16;
+	private static final int SEND_ITEM = 17;
+	//private static final int MENU_EXPORT_ALL = 18;
+	private static final int EXPORT_ALL_ITEM = 19;
+	
+
 	
 	
 	@Override
@@ -85,9 +94,10 @@ public class LoadActivity extends ListActivity {
 	
 	 @Override
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
-		 super.onCreateContextMenu(menu, v, menuInfo);
-		 MenuInflater inflater = getMenuInflater();
-		 inflater.inflate(R.menu.load_context_menu, menu);
+		super.onCreateContextMenu(menu, v, menuInfo);
+		menu.add(MENU_DELETE, DELETE_ITEM, 0, R.string.delete);
+	    menu.add(MENU_EXPORT, EXPORT_ITEM, 0, R.string.export);
+	    menu.add(MENU_SEND, SEND_ITEM, 0, R.string.send);
 	 }
 	
 	@Override
@@ -104,12 +114,12 @@ public class LoadActivity extends ListActivity {
 		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
 
 		switch(item.getItemId()) {
-    	case R.id.context_menu_delete:
+    	case DELETE_ITEM:
 	        dbHelper.delete(info.id);
 	        fillData();
 	        return true;
 	        
-    	case R.id.context_menu_export:
+    	case EXPORT_ITEM:
     		
     		Toast toast;
     		ExportHelper exHlp = new ExportHelper(this);
@@ -124,11 +134,11 @@ public class LoadActivity extends ListActivity {
     		
     		return true;
 
-    	case R.id.context_menu_send:
+    	case SEND_ITEM:
 	    	{
 	    		final String[] columns = dbHelper.getRowAndFormat(info.id);
 	    		if (columns != null)
-	    	        AnstopActivity.startSendMailIntent
+	    	        Anstop.startSendMailIntent
 		            (this, getResources().getString(R.string.app_name) + ": " + columns[0], columns[1]);
 	    	}
 	    	return true;
@@ -136,14 +146,15 @@ public class LoadActivity extends ListActivity {
 		return super.onContextItemSelected(item);
 	}
 	
-	/*@Override
+	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
     	super.onCreateOptionsMenu(menu);
+    	//menu.add(MENU_EXPORT_ALL, EXPORT_ALL_ITEM, 0, R.string.export_all).setIcon(android.R.drawable.ic_menu_share);
     	
         return true;
-    }*/
+    }
 	
-	/*@Override
+	@Override
     public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()) {
 		case EXPORT_ALL_ITEM:
@@ -163,6 +174,6 @@ public class LoadActivity extends ListActivity {
 		}
 		
 		return false;
-	}*/
+	}
 
 }
