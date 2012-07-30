@@ -27,8 +27,6 @@ package An.stop;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 
-import An.stop.util.AnstopDbAdapter;
-import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
@@ -37,7 +35,7 @@ import android.os.Message;
 /**
  * Timer object and thread.
  *<P>
- * Has two modes ({@link AnstopActivity#STOP_LAP} and {@link AnstopActivity#COUNTDOWN}); clock's mode field is {@link #v}.
+ * Has two modes ({@link Anstop#STOP_LAP} and {@link Anstop#COUNTDOWN}); clock's mode field is {@link #v}.
  * Has accessible fields for the current {@link #hour}, {@link #min}, {@link #sec}, {@link #dsec}.
  * Has a link to the {@link #parent} Anstop, and will sometimes read or set parent's text field contents.
  *<P>
@@ -64,7 +62,7 @@ import android.os.Message;
  * through {@link #hourh} and the rest of the handlers here.
  *<P>
  * To lap, call {@link #lap(StringBuffer)}.  Note that persisting the lap data arrays
- * at Activity.onStop must be done in {@link AnstopActivity}, not here.
+ * at Activity.onStop must be done in {@link Anstop}, not here.
  * {@link #fillSaveState(Bundle)} stores the lap data arrays, but there's no corresponding
  * method to save long arrays to {@link SharedPreferences}.
  *<P>
@@ -89,8 +87,8 @@ public class Clock {
 	/**
 	 * Counting mode. Two possibilities:
 	 *<UL>
-	 *<LI> {@link AnstopActivity#STOP_LAP} (0), counting up from 0
-	 *<LI> {@link AnstopActivity#COUNTDOWN} (1), counting down from a time set by the user
+	 *<LI> {@link Anstop#STOP_LAP} (0), counting up from 0
+	 *<LI> {@link Anstop#COUNTDOWN} (1), counting down from a time set by the user
 	 *</UL>
 	 * @see #getMode()
 	 * @see #changeMode(int)
@@ -100,7 +98,7 @@ public class Clock {
 
 	/**
 	 * Lap formatting flags and fields.
-	 * Read-only from {@link AnstopActivity} class.
+	 * Read-only from {@link Anstop} class.
 	 * The active format flags are {@link Clock.LapFormatter#lapFormatFlags lapf.lapFormatFlags};
 	 * the default is {@link #LAP_FMT_FLAG_ELAPSED} only.
 	 * To change, call {@link #setLapFormat(int, DateFormat)}.
@@ -119,23 +117,23 @@ public class Clock {
 
 	clockThread threadS;
 	countDownThread threadC;
-	AnstopActivity parent;
+	Anstop parent;
 	dsechandler dsech;
 	sechandler sech;
 	minhandler minh;
 	hourhandler hourh;
 	
-	public int dsec = 0;
-	public int sec = 0;
-	public int min = 0;
-	public int hour = 0;
+	int dsec = 0;
+	int sec = 0;
+	int min = 0;
+	int hour = 0;
 
 	/**
 	 * For lap mode, the current lap number, or 1 if not lap mode.
 	 * If <tt>laps</tt> &gt; 1, at least 1 lap has been recorded
 	 * in {@link #lap_elapsed} and {@link #lap_systime}.
 	 */
-	public int laps = 1;
+	int laps = 1;
 
 	/**
 	 * Elapsed time (milliseconds) of each lap, if lap mode.
@@ -204,7 +202,7 @@ public class Clock {
 	private long appStateRestoreTime;
 	
 	
-	public Clock(AnstopActivity parent) {
+	public Clock(Anstop parent) {
 		this.parent = parent;
 		lapf = new LapFormatter();
 
@@ -400,7 +398,7 @@ public class Clock {
 		if (appPauseTime > appStateRestoreTime)
 			adjClockOnAppResume(false, System.currentTimeMillis());
 
-		if(v == AnstopActivity.STOP_LAP) {
+		if(v == Anstop.STOP_LAP) {
 			if((threadS != null) && threadS.isAlive())
 				threadS.interrupt();
 			threadS = new clockThread();
@@ -549,7 +547,7 @@ public class Clock {
 
 		// set v to ensure consistent state; should be set already
 		// by changeMode before this method was called.
-		v = inState.getInt("anstop_state_current", AnstopActivity.STOP_LAP);
+		v = inState.getInt("anstop_state_current", Anstop.STOP_LAP);
 
 		// read the counting fields
 		{
@@ -623,7 +621,7 @@ public class Clock {
 
 	/**
 	 * Adjust the clock fields ({@link #hour}, {@link #min}, etc)
-	 * and the display fields ({@link AnstopActivity#hourView}, etc)
+	 * and the display fields ({@link Anstop#hourView}, etc)
 	 * based on the application being paused for a period of time.
 	 *<P>
 	 * If <tt>adjDisplayOnly</tt> is false, do not call unless {@link #isStarted}.
@@ -646,7 +644,7 @@ public class Clock {
 			// based on our mode, adjust dsec, sec, min, hour:
 			switch (v)
 			{
-			case AnstopActivity.STOP_LAP:
+			case Anstop.STOP_LAP:
 				ttotal = resumedAtTime - startTimeAdj;
 				break;
 	
@@ -760,7 +758,7 @@ public class Clock {
 
 	/**
 	 * Get the clock's current counting mode.
-	 * @return  the mode; {@link AnstopActivity#STOP_LAP} or {@link AnstopActivity#COUNTDOWN}
+	 * @return  the mode; {@link Anstop#STOP_LAP} or {@link Anstop#COUNTDOWN}
 	 * @see #changeMode(int)
 	 * @see #reset(int, int, int, int)
 	 */
@@ -815,7 +813,7 @@ public class Clock {
 
 	/**
 	 * Reset the clock while stopped, and maybe change modes.  {@link #isStarted} must be false.
-	 * If <tt>newMode</tt> is {@link AnstopActivity#STOP_LAP}, the clock will be reset to 0,
+	 * If <tt>newMode</tt> is {@link Anstop#STOP_LAP}, the clock will be reset to 0,
 	 * and <tt>h</tt>, <tt>m</tt>, <tt>s</tt> are ignored.
 	 *
 	 * @param newMode  new mode to set, or -1 to leave as is
@@ -841,7 +839,7 @@ public class Clock {
 		startTimeAdj = -1L;
 
 		laps = 1;
-		if (v == AnstopActivity.STOP_LAP)
+		if (v == Anstop.STOP_LAP)
 		{
 			hour = 0;
 			min = 0;
@@ -863,7 +861,7 @@ public class Clock {
 	 * If the current mode is already <tt>newMode</tt>, change it anyway;
 	 * calls <tt>reset</tt> to update all fields.
 	 * @see #reset(int, int, int, int)
-	 * @param newMode  The new mode; {@link AnstopActivity#STOP_LAP} or {@link AnstopActivity#COUNTDOWN}
+	 * @param newMode  The new mode; {@link Anstop#STOP_LAP} or {@link Anstop#COUNTDOWN}
 	 */
 	public void changeMode(final int newMode)
 	{
@@ -900,7 +898,7 @@ public class Clock {
 
 			isStarted = true;
 			wasStarted = true;
-			if(v == AnstopActivity.STOP_LAP) {
+			if(v == Anstop.STOP_LAP) {
 				if((threadS != null) && threadS.isAlive())
 					threadS.interrupt();
 				threadS = new clockThread();
@@ -926,7 +924,7 @@ public class Clock {
 			isStarted = false;
 			stopTime = now;
 			
-			if(v == AnstopActivity.STOP_LAP) {
+			if(v == Anstop.STOP_LAP) {
 				if(threadS.isAlive())
 					threadS.interrupt();
 			}
@@ -1117,7 +1115,7 @@ public class Clock {
 		/**
 		 * Any lap format flags, such as {@link Clock#LAP_FMT_FLAG_SYSTIME}, currently
 		 * active; the default is {@link Clock#LAP_FMT_FLAG_ELAPSED} only.
-		 * Read-only from {@link AnstopActivity} class.
+		 * Read-only from {@link Anstop} class.
 		 * To change, call {@link #setLapFormat(int, DateFormat)}.
 		 *<P>
 		 * <b>Note:</b> Currently, code and settings.xml both assume that
