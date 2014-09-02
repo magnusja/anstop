@@ -1,7 +1,9 @@
 /***************************************************************************
- *   Copyright (C) 2009-2012 by mj <fakeacc.mj@gmail.com>, 				   *
- *   							Jeremy Monin <jeremy@nand.net>             *
- *                                                          			   *
+ *   Copyright (C) 2009-2010 by mj                                         *
+ *   fakeacc.mj@gmail.com  												   *
+ *   Portions of this file Copyright (C) 2012 Jeremy Monin                 *
+ *     jeremy@nand.net                                                     *
+ *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -18,17 +20,15 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-package An.stop.util;
+package An.stop;
 
-import An.stop.AnstopActivity;
-import An.stop.Clock;
-import An.stop.R;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.preference.PreferenceManager;
 import android.text.format.DateFormat;
 
 
@@ -207,7 +207,7 @@ public class AnstopDbAdapter {
     }
     
     /** Don't forget to call {@link #open()} before use, and {@link #close()} when done. */
-    public AnstopDbAdapter(Context context) {
+    AnstopDbAdapter(Context context) {
     	this.mContext = context;
     }
     
@@ -230,7 +230,7 @@ public class AnstopDbAdapter {
      * If there are laps, add them afterwards by calling {@link #createNewLaps(long, int, long[], long[])}.
      * @param title  Title
      * @param comment   Comment, or null. In v2 this body text also included the start time and laps.
-     * @param mode   Stopwatch mode used: {@link AnstopActivity#STOP_LAP} or {@link AnstopActivity#COUNTDOWN}
+     * @param mode   Stopwatch mode used: {@link Anstop#STOP_LAP} or {@link Anstop#COUNTDOWN}
      * @param startTime  Start time (milliseconds), or -1L if never started.
      *    This same convention is returned by {@link Clock#getStartTimeActual()}.
      * @param stopTime   Stop time (milliseconds), or -1L for none
@@ -309,7 +309,7 @@ public class AnstopDbAdapter {
 	 * along with the comment field if any.
 	 * Older records (v1 or v2) have these as text within body.
 	 *<P>
-	 * The same formatting is used in {@link AnstopActivity#updateStartTimeCommentLapsView(boolean)}.
+	 * The same formatting is used in {@link Anstop#updateStartTimeCommentLapsView(boolean)}.
 	 * If you change this method, change that one to match.
 	 *
 	 * @param rowId  The _id of the {@link #DATABASE_TABLE} record to retrieve
@@ -342,30 +342,25 @@ public class AnstopDbAdapter {
 				//\n
 				// Laps:
 				// lap info
-				// TODO
-				//if (fmt_dow_meddate_time == null)
-				//	fmt_dow_meddate_time = AnstopActivity.buildDateFormatDOWmedium(mContext);
+				if (fmt_dow_meddate_time == null)
+					fmt_dow_meddate_time = Anstop.buildDateFormatDOWmedium(mContext);
 				StringBuilder sb = new StringBuilder();
 
-				//TODO
-				//Clock.LapFormatter lapf = new Clock.LapFormatter();
+				Clock.LapFormatter lapf = new Clock.LapFormatter();
 
-				
 				// mode
 				sb.append(mContext.getResources().getString(R.string.mode_was));
 				sb.append(' ');
-				//TODO
-				//if (AnstopActivity.COUNTDOWN == time.getInt(col_mode))
-				//	sb.append(mContext.getResources().getString(R.string.countdown));
-				//else
-				//	sb.append(mContext.getResources().getString(R.string.stop));
+				if (Anstop.COUNTDOWN == time.getInt(col_mode))
+					sb.append(mContext.getResources().getString(R.string.countdown));
+				else
+					sb.append(mContext.getResources().getString(R.string.stop));
 				sb.append("\n\n");
 
 				// duration
 				if (! time.isNull(col_elapsed))
 				{
-					//TODO
-					//lapf.formatTimeLap(sb, false, -1, 0, 0, 0, 0, time.getLong(col_elapsed), 0, null);
+					lapf.formatTimeLap(sb, false, -1, 0, 0, 0, 0, time.getLong(col_elapsed), 0, null);
 					sb.append("\n\n");
 				}
 
@@ -399,13 +394,12 @@ public class AnstopDbAdapter {
 					long[] lap_elapsed = new long[lapCount],
 					       lap_systime = new long[lapCount];
 					fetchAllLaps(rowId, lap_elapsed, lap_systime);
-					//TODO
-					//final int fmtFlags = AnstopActivity.readLapFormatPrefFlags
-					//	(PreferenceManager.getDefaultSharedPreferences(mContext));
-//					if ((fmtFlags != 0) && (fmtFlags != Clock.LAP_FMT_FLAG_ELAPSED))
-//						lapf.setLapFormat
-//							(fmtFlags, android.text.format.DateFormat.getTimeFormat(mContext));
-					//lapf.formatTimeAllLaps(sb, lapCount + 1, lap_elapsed, lap_systime);
+					final int fmtFlags = Anstop.readLapFormatPrefFlags
+						(PreferenceManager.getDefaultSharedPreferences(mContext));
+					if ((fmtFlags != 0) && (fmtFlags != Clock.LAP_FMT_FLAG_ELAPSED))
+						lapf.setLapFormat
+							(fmtFlags, android.text.format.DateFormat.getTimeFormat(mContext));
+					lapf.formatTimeAllLaps(sb, lapCount + 1, lap_elapsed, lap_systime);
 				}
 
 				// All done.

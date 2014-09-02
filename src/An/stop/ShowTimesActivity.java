@@ -1,7 +1,9 @@
 /***************************************************************************
- *   Copyright (C) 2009-2012 by mj <fakeacc.mj@gmail.com>, 				   *
- *   							Jeremy Monin <jeremy@nand.net>             *
- *                                                          			   *
+ *   Copyright (C) 2009-2010 by mj                                         *
+ *   fakeacc.mj@gmail.com  												   *
+ *   Portions of this file Copyright (C) 2010,2012 Jeremy Monin            *
+ *     jeremy@nand.net                                                     *
+ *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -20,14 +22,10 @@
 
 package An.stop;
 
-import An.stop.util.AnstopDbAdapter;
-import An.stop.util.ExportHelper;
-import An.stop.util.Util;
 import android.app.Activity;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -40,6 +38,15 @@ import android.widget.Toast;
 public class ShowTimesActivity extends Activity {
 	
 	private static final int VIEW_SIZE = 30;
+	
+	private static final int MENU_DELETE = 12;
+	private static final int DELETE_ITEM = 13;
+	
+	private static final int MENU_EXPORT = 14;
+	private static final int EXPORT_ITEM = 15;
+	
+	private static final int MENU_SEND = 16;
+	private static final int SEND_ITEM = 17;
 
 	private AnstopDbAdapter dbHelper;
 	private Long mRowId;
@@ -90,22 +97,25 @@ public class ShowTimesActivity extends Activity {
 	
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
-		MenuInflater inflater = getMenuInflater();
-	    inflater.inflate(R.menu.show_times_menu, menu);
+    	
+    	menu.add(MENU_EXPORT, EXPORT_ITEM, 0, R.string.export).setIcon(android.R.drawable.ic_menu_share);
+    	menu.add(MENU_SEND, SEND_ITEM, 0, R.string.send).setIcon(android.R.drawable.ic_menu_send);
+    	menu.add(MENU_DELETE, DELETE_ITEM, 0, R.string.delete).setIcon(android.R.drawable.ic_menu_delete);
+    	
         return true;
     }
 	
 	@Override
     public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()) {
-		case R.id.menu_delete:
+		case DELETE_ITEM:
 			dbHelper.open();
 	        dbHelper.delete((long)mRowId);
 	        dbHelper.close();
 	        finish();
 	        return true;
 	        
-		case R.id.menu_export:
+		case EXPORT_ITEM:
 			ExportHelper exHlp = new ExportHelper(this);
 			
 			Toast toast;
@@ -120,8 +130,8 @@ public class ShowTimesActivity extends Activity {
 			
 			return true;
 
-		case R.id.menu_send:
-	        Util.startSendMailIntent
+		case SEND_ITEM:
+	        Anstop.startSendMailIntent
 	        	(this, getResources().getString(R.string.app_name) + ": " + titleView.getText().toString(), bodyView.getText().toString());
 	    	return true;
 		}

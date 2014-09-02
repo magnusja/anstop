@@ -1,7 +1,9 @@
 /***************************************************************************
- *   Copyright (C) 2009-2012 by mj <fakeacc.mj@gmail.com>, 				   *
- *   							Jeremy Monin <jeremy@nand.net>             *
- *                                                          			   *
+ *   Copyright (C) 2009-2010 by mj                                         *
+ *   fakeacc.mj@gmail.com                                                  *
+ *   Portions of this file Copyright (C) 2010,2012 Jeremy Monin            *
+ *     jeremy@nand.net                                                     *
+ *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -18,7 +20,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-package An.stop.util;
+package An.stop;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,7 +29,10 @@ import java.io.IOException;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.os.Environment;
+import android.preference.PreferenceManager;
+import android.text.format.DateFormat;
 
 /**
  * Helper class to export time and lap data.
