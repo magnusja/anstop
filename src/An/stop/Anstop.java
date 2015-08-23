@@ -1,7 +1,7 @@
 /***************************************************************************
  *   Copyright (C) 2009-2011 by mj										   *
  *   fakeacc.mj@gmail.com  												   *
- *   Portions of this file Copyright (C) 2010-2012,2014 Jeremy Monin       *
+ *   Portions of this file Copyright (C) 2010-2012,2014-2015 Jeremy Monin  *
  *    jeremy@nand.net                                                      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -615,11 +615,53 @@ public class Anstop extends Activity implements OnGesturePerformedListener {
 	 */
 	private void onRestoreInstanceState(SharedPreferences settings) {
 		addDebugLog("onRestoreInstanceState(SP); settings == " + settings);
-		if ( ! settings.getBoolean("anstop_in_use", false) )
+		if (settings.contains("anstop_in_use"))
+			addDebugLog("onRestoreInstanceState: anstop_in_use=="
+				+ settings.getBoolean("anstop_in_use", false));
+		else
+			addDebugLog("onRestoreInstanceState: anstop_in_use (key not found)");
+
+		// To be cautious, also check the two clockActive flags
+		final boolean inUse = settings.getBoolean("anstop_in_use", false)
+			|| settings.getBoolean("anstop_state_clockActive", false)
+			|| settings.getBoolean("anstop_state_clockWasActive", false);
+
+		// temporary code to log some contents if present; based on Clock.restoreSaveState
 		{
-			addDebugLog("onRestoreInstanceState: anstop_in_use==false");
+			addDebugLog("anstop_state_current = " + settings.getInt("anstop_state_current", -1));
+			addDebugLog("anstop_state_clockDigits (h,m,s,d) = "
+				+ settings.getInt("anstop_state_clockDigits_h", -1)
+				+ ", " + settings.getInt("anstop_state_clockDigits_m", -1)
+				+ ", " + settings.getInt("anstop_state_clockDigits_s", -1)
+				+ ", " + settings.getInt("anstop_state_clockDigits_d", -1));
+			if (settings.contains("anstop_state_clockActive"))
+				addDebugLog("anstop_state_clockActive = "
+					+ settings.getBoolean("anstop_state_clockActive", false));
+			else
+				addDebugLog("anstop_state_clockActive (not found)");
+			if (settings.contains("anstop_state_clockWasActive"))
+				addDebugLog("anstop_state_clockWasActive = "
+					+ settings.getBoolean("anstop_state_clockWasActive", false));
+			else
+				addDebugLog("anstop_state_clockWasActive (not found)");
+			addDebugLog("anstop_state_clockStateSaveTime = "
+				+ settings.getLong("anstop_state_clockStateSaveTime", -1L));
+			addDebugLog("current time (millis) = " + System.currentTimeMillis());
+			addDebugLog("anstop_state_clockLapCount = "
+				+ settings.getInt("anstop_state_clockLapCount", -1));
+			String comment = settings.getString("anstop_state_clockComment", null);
+			if ((comment != null) && (comment.length() >= 0))
+				addDebugLog("comment: " + comment);
+			else
+				addDebugLog("comment (not found)");
+		}
+
+		if ( ! inUse )
+		{
+			addDebugLog("onRestoreInstanceState: returning since anstop_in_use==false");
 			return;
 		}
+
 		int newCurrent = settings.getInt("anstop_state_current", STOP_LAP);
 		if (newCurrent == OBSOL_LAP)
 			newCurrent = STOP_LAP;
@@ -1144,12 +1186,16 @@ public class Anstop extends Activity implements OnGesturePerformedListener {
 			dbHelper.deleteTemporaryLaps();
 		}
 
-		// Check for an old anstop_in_use flag from previous runs
+		// Clear any old anstop_in_use flags from previous runs
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
-		if(settings.getBoolean("anstop_in_use", false))
+		if (settings.getBoolean("anstop_in_use", false)
+		    || settings.getBoolean("anstop_state_clockActive", false)
+		    || settings.getBoolean("anstop_state_clockWasActive", false))
 		{
 			Editor outPref = settings.edit();
 			outPref.putBoolean("anstop_in_use", false);
+			outPref.putBoolean("anstop_state_clockActive", false);
+			outPref.putBoolean("anstop_state_clockWasActive", false);
 			outPref.commit();
 		}
 	}
@@ -1325,8 +1371,21 @@ public class Anstop extends Activity implements OnGesturePerformedListener {
     	 * append it to {@link #laps} and {@link #lapView}.
     	 */
     	public void onClick(View v) {
+		final boolean wasStarted = clock.wasStarted;  // get value before clock.lap()
+
     		sb.append("\n");
     		clock.lap(sb);  // format: "lap. #h mm:ss:d"
+
+		if (! (wasStarted || wroteStartTime || clock.isStarted))
+		{
+			if (laps == null)
+				laps = new StringBuilder();
+			if (laps.length() == 0)
+				laps.append(getResources().getString(R.string.laps));
+
+			updateStartTimeCommentLapsView(false);
+			wroteStartTime = true;
+		}
         	laps.append(sb);
         	lapView.append(sb);
 
